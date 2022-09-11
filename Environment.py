@@ -263,16 +263,16 @@ class GridWorld():
         if   self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Other"]:  goal_picked = False  # Path
         elif self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Goal A"]:
             goal_picked = True
-            terminate   = True
+            # terminate   = True # Picking two goals changes behaviour of terminate
         elif self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Goal B"]:
             goal_picked = True
-            terminate   = True
+            # terminate   = True # Picking two goals changes behaviour of terminate
         elif self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Goal C"]:
             goal_picked = True
-            terminate   = True
+            # terminate   = True # Picking two goals changes behaviour of terminate
         elif self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Goal D"]:
             goal_picked = True
-            terminate   = True
+            # terminate   = True # Picking two goals changes behaviour of terminate
 
         return [terminate, goal_picked]
 
@@ -340,7 +340,7 @@ class GridWorld():
         reward = self.check_reward(action, terminate, goal_picked)
         observe = self.move(action, terminate, goal_picked)
 
-        terminate = False # There is a new condition to terminate a game - pick two goals!
+        # terminate = False # There is a new condition to terminate a game - pick two goals!
 
         # When the goal is picked - shaffle other goals
         if goal_picked and self.cnt_goal_picked == 0:
