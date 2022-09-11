@@ -1,6 +1,6 @@
 import numpy as np
+import random
 from MapGenerator.Grid import *
-from tensorforce.environments import Environment
 
 # https://towardsdatascience.com/ai-learns-to-fly-part-2-create-your-custom-rl-environment-and-train-an-agent-b56bbd334c76
 
@@ -65,7 +65,7 @@ PS: New Map:
          
 """
 
-class GridWorld(Environment):
+class GridWorld():
 
     def __init__(self, tot_row, tot_col, goal_rewards=None, step_cost=-0.001, max_moves_per_episode=90):
         super().__init__()
@@ -111,6 +111,14 @@ class GridWorld(Environment):
             self.ObjSym["Goal D"]: 16,
         }
 
+        # Value of the goal <-> name of the goal
+        self.ValueGoal = {
+            self.GoalValue[self.ObjSym["Goal A"]]: "Goal A",
+            self.GoalValue[self.ObjSym["Goal B"]]: "Goal B",
+            self.GoalValue[self.ObjSym["Goal C"]]: "Goal C",
+            self.GoalValue[self.ObjSym["Goal D"]]: "Goal D",
+        }
+
         # Originally agent was started as random, I changed to be deterministic ( [0.5, 0.5] -> [1, 0] )
         #self.transition_matrix = np.ones((self.action_space_size, self.action_space_size))/ self.action_space_size
         self.transition_matrix = np.eye(self.action_space_size)
@@ -126,6 +134,8 @@ class GridWorld(Environment):
         if goal_rewards is None:
             goal_rewards = [2, 4, 8, 16]
         self.goal_rewards = goal_rewards
+
+        self.cnt_goal_picked = 0
 
         # Set step cost in the environment
         # It could differ from experiment to experiment,
@@ -330,14 +340,88 @@ class GridWorld(Environment):
         reward = self.check_reward(action, terminate, goal_picked)
         observe = self.move(action, terminate, goal_picked)
 
-        #if terminate: print("Episode is finished. Moves played: ", self.step_count, "Goal picked? ", goal_picked)
+        terminate = False # There is a new condition to terminate a game - pick two goals!
 
-        return observe, terminate, reward
+        # When the goal is picked - shaffle other goals
+        if goal_picked and self.cnt_goal_picked == 0:
+            # Delete picked goal
+            self.delete_picked_goal()
+
+            # Shaffle rest goals
+            self.shaffle_goals()
+
+            self.cnt_goal_picked += 1
+
+        elif goal_picked and self.cnt_goal_picked == 1:
+            terminate = True
+
+        # if terminate: print("Episode is finished. Moves played: ", self.step_count, "Goal picked? ", goal_picked)
+
+        return observe, terminate, goal_picked, reward
 
     """
             ################################  METHODS USED FOR TENSORFORCE  #####################################
     """
 
+    def delete_picked_goal(self):
+        self.state_matrix[self.GoalMap, self.position[0], self.position[1]] = self.MapSym[self.GoalMap]["Other"]
+
+    def shaffle_goals(self):
+
+        # 1. Create dictionary of left goals and their coordinates
+        leftgoals = dict()
+        map = self.state_matrix[self.GoalMap]
+        Goals = ["Goal A", "Goal B", "Goal C", "Goal D"]
+
+        for row in range(self.world_row):
+            for col in range(self.world_col):
+                if map[row, col] != self.MapSym[self.GoalMap]["Other"]:
+                    index = int(map[row, col] - 1)
+                    goal_name = Goals[index]
+                    leftgoals[goal_name] = dict(position=[row, col], value=self.goal_rewards[index])
+
+        # 2. Shaffle coordinates
+        print("Goals before shuffle: ", leftgoals)
+        # Random shaffle:
+        # l = list(leftgoals.items())
+        # random.shuffle(l)
+        # leftgoals = dict(l)
+
+        # Change least and most valuable goals:
+        least_goal = dict(name="0", position=[0, 0], value=1000)
+        most_goal  = dict(name="0", position=[0, 0], value=0)
+        for key, leftgoal in leftgoals.items():
+            if least_goal["value"] > leftgoal["value"]:
+                least_goal["name"] = key # self.ValueGoal[leftgoal["value"]]
+                least_goal["position"] = leftgoal["position"]
+                least_goal["value"] = leftgoal["value"]
+            if most_goal["value"] < leftgoal["value"]:
+                most_goal["name"] = key # self.ValueGoal[leftgoal["value"]]
+                most_goal["position"] = leftgoal["position"]
+                most_goal["value"] = leftgoal["value"]
+
+        print("The most valuable left goal: ", most_goal)
+        print("The least valuable left goal: ", least_goal)
+
+        new_leftgoals = dict()
+        for key, leftgoal in leftgoals.items():
+            if key == most_goal["name"]:
+                leftgoal["position"] = least_goal["position"]
+            elif key == least_goal["name"]:
+                leftgoal["position"] = most_goal["position"]
+            new_leftgoals[key] = leftgoal
+
+        print("Goals after shuffle: ", new_leftgoals)
+
+        # 3. Put new goals on the map
+        map_new = np.zeros((self.world_row, self.world_col))
+        for key, new_leftgoal in new_leftgoals.items():
+            row = new_leftgoal["position"][0]
+            col = new_leftgoal["position"][1]
+            map_new[row, col] = self.MapSym[self.GoalMap][key]
+
+
+        self.setStateMatrix(map_new, set="goals")
 
     """
         Clears all the map, preparing for a new one
