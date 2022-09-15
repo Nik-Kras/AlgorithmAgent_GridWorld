@@ -40,6 +40,7 @@ class AgentRL:
         self.picked_list = []
         self.goal_found = None
         self.max_goal = self.get_highest_goal(self.picked_list)
+        self.picked_goal = False
 
     """
     PS: How to read Actions:
@@ -52,10 +53,10 @@ class AgentRL:
     def get_highest_goal(self, ignore_list):
         max_value = 0
         result_point = None
-        for [key, value] in self.env.GoalValue:
+        for key, value in self.env.GoalValue.items():
             if max_value < value and key not in ignore_list:
                 max_value = value
-                result_point = point
+                result_point = key
 
         return result_point
 
@@ -71,6 +72,9 @@ class AgentRL:
         return result_point
 
     def chose_action(self):
+        if self.picked_goal:
+            self.goal_found = self.get_highest_goal_from_memory([])
+
         result = self.astar()
 
         ignore_list = []
@@ -91,8 +95,9 @@ class AgentRL:
 
         return result
 
-    def on_pickup(self, goal_picked):
-        self.goal_found = self.get_highest_goal_from_memory([])
+    def on_pickup(self, reward):
+        self.memory[self.env.position[0], self.env.position[1]] = self.env.ObjSym["Path"]
+        self.picked_goal = True
 
     def astar(self):
         """Returns a list of tuples as a path from the given start to the given end in the given maze"""

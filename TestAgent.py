@@ -10,13 +10,13 @@ env = Environment.GridWorld(tot_row=ROWS, tot_col=COLS)
 env.reset()
 
 # Create a Map for test
-walls = np.ones((ROWS, COLS))
-for i in range(ROWS):
-    if i%2 == 0:
-        walls[i, :] = 0
-env.setStateMatrix(walls, set="walls")
-env.setPosition()
-env.render()
+# walls = np.ones((ROWS, COLS))
+# for i in range(ROWS):
+#     if i%2 == 0:
+#         walls[i, :] = 0
+# env.setStateMatrix(walls, set="walls")
+# env.setPosition()
+# env.render()
 
 agent = Agent.AgentRL(env, SIGHT)
 
@@ -29,12 +29,14 @@ while True:
 
     observe, terminate, goal_picked, reward = env.execute(action)
 
-    if goal_picked is not None:
+    if goal_picked:
         print("You have picked a goal, reward = {}".format(reward))
-        agent.on_pickup(goal_picked)
+        agent.on_pickup(reward)
 
     if terminate:
         print("Game result: ", reward)
         break
 
     #input("Press the <Enter> key to continue...")
+
+env.render()
