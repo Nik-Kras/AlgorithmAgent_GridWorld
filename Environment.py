@@ -237,7 +237,7 @@ class GridWorld():
         # By default, everything is okay
         # If one of "bad" circumstances happens - it changes to True
         terminate = False
-        goal_picked = False
+        goal_picked = None
 
         # If player made more than max_moves (90) steps - terminate the game
         if self.step_count > self.max_moves: return [True, goal_picked]
@@ -260,18 +260,19 @@ class GridWorld():
         if hit_wall: return [True, goal_picked]
 
         # Check if player picked a goal
-        if   self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Other"]:  goal_picked = False  # Path
+        if   self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Other"]:
+            goal_picked = False  # Path
         elif self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Goal A"]:
-            goal_picked = True
+            goal_picked = self.MapSym[self.GoalMap]["Goal A"]
             # terminate   = True # Picking two goals changes behaviour of terminate
         elif self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Goal B"]:
-            goal_picked = True
+            goal_picked = self.MapSym[self.GoalMap]["Goal B"]
             # terminate   = True # Picking two goals changes behaviour of terminate
         elif self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Goal C"]:
-            goal_picked = True
+            goal_picked = self.MapSym[self.GoalMap]["Goal C"]
             # terminate   = True # Picking two goals changes behaviour of terminate
         elif self.state_matrix[self.GoalMap, new_position[0], new_position[1]] == self.MapSym[self.GoalMap]["Goal D"]:
-            goal_picked = True
+            goal_picked = self.MapSym[self.GoalMap]["Goal D"]
             # terminate   = True # Picking two goals changes behaviour of terminate
 
         return [terminate, goal_picked]

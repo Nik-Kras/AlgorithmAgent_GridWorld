@@ -11,23 +11,18 @@ env.reset()
 agent = Agent.AgentRL(env, SIGHT)
 
 while True:
-    agent.updateWorldObservation()
+    agent.update_world_observation()
     agent.render()
 
-    action = agent.choseAction()
+    action = agent.chose_action()
     print(action)
 
     observe, terminate, goal_picked, reward = env.execute(action)
 
-    if goal_picked:
+    if goal_picked is not None:
         print("You have picked a goal, reward = {}".format(reward))
-        agent.updateWorldObservation()
-        agent.render()
-        action = agent.choseAction()
-        print(action)
-        env.render()
+        agent.on_pickup(goal_picked)
 
-        break
     if terminate:
         print("Game result: ", reward)
         break
