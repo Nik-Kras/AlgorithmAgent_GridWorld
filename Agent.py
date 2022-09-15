@@ -37,8 +37,9 @@ class AgentRL:
         self.env = env
         self.position = env.position
         self.memory = np.full((env.world_row, env.world_col), None)
+        self.picked_list = []
         self.goal_found = None
-        self.max_goal = self.getHighestGoal()
+        self.max_goal = self.get_highest_goal(self.picked_list)
 
     """
     PS: How to read Actions:
@@ -48,10 +49,17 @@ class AgentRL:
     3 - LEFT
     """
 
-    def getHighestGoal(self):
-        return max(self.env.GoalValue, key=self.env.GoalValue.get)
+    def get_highest_goal(self, ignore_list):
+        max_value = 0
+        result_point = None
+        for [key, value] in self.env.GoalValue:
+            if max_value < value and key not in ignore_list:
+                max_value = value
+                result_point = point
 
-    def getHighestGoalFromMemory(self, ignore_list):
+        return result_point
+
+    def get_highest_goal_from_memory(self, ignore_list):
         value = 0
         result_point = None
         for row in self.memory:
@@ -62,14 +70,14 @@ class AgentRL:
 
         return result_point
 
-    def choseAction(self):
+    def chose_action(self):
         result = self.astar()
 
         ignore_list = []
 
         if self.goal_found is None:
             while result == -1:
-                self.goal_found = self.getHighestGoalFromMemory(ignore_list)
+                self.goal_found = self.get_highest_goal_from_memory(ignore_list)
                 """ we need this to solve this problem
                 # - #
                 # O #
@@ -82,6 +90,9 @@ class AgentRL:
                 result = self.astar()
 
         return result
+
+    def on_pickup(self, goal_picked):
+        self.goal_found = self.get_highest_goal_from_memory([])
 
     def astar(self):
         """Returns a list of tuples as a path from the given start to the given end in the given maze"""
@@ -170,7 +181,7 @@ class AgentRL:
         return -1
 
 
-    def updateWorldObservation(self):
+    def update_world_observation(self):
         position, sight_array = self.env.get_sight(self.sight)
         self.position = position
 
