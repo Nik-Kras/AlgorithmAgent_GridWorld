@@ -1,13 +1,13 @@
-import tensorforce
+# import tensorforce
 import Environment
 import Agent
 import numpy as np
 import matplotlib.pyplot as plt
 from MapGenerator.Grid import *
-from tensorforce.execution import Runner
+# from tensorforce.execution import Runner
 
-import pandas as pd
-import tensorflow as tf
+# import pandas as pd
+# import tensorflow as tf
 
 SIZE = 4
 ROWS = 12
